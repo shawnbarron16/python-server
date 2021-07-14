@@ -1,4 +1,4 @@
-from animals.request import get_all_animals
+from animals.request import get_all_animals, get_single_animal
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 
@@ -11,6 +11,20 @@ class HandleRequests(BaseHTTPRequestHandler):
     # It gives a description of the class or function
     """Controls the functionality of any GET, PUT, POST, DELETE requests to the server
     """
+
+    def parse_url(self, path):
+        path_params = path.split('/')
+        resource = path_params[1]
+        id = None
+
+        try: 
+            id = int(path_params[2])
+        except IndexError:
+            pass
+        except ValueError:
+            pass
+
+        return (resource, id)
 
     # Here's a class function
     def _set_headers(self, status):
@@ -43,23 +57,19 @@ class HandleRequests(BaseHTTPRequestHandler):
     def do_GET(self):
         """Handles GET requests to the server
         """
-        # Set the response code to 'Ok'
         self._set_headers(200)
+        response = {}
 
-        # Your new console.log() that outputs to the terminal
-        print(self.path)
+        (resource, id) = self.parse_url(self.path)
 
-        # It's an if..else statement
-        if self.path == "/animals":
-            # In Python, this is a list of dictionaries
-            # In JavaScript, you would call it an array of objects
-            response = get_all_animals()
+        if resource == "animals":
+            if id is not None:
+                response = f"{get_single_animal(id)}"
 
-        else:
-            response = []
+            else:
+                response = f"{get_all_animals()}"
 
-        # This weird code sends a response back to the client
-        self.wfile.write(f"{response}".encode())
+        self.wfile.write(response.encode())
 
     # Here's a method on the class that overrides the parent's method.
     # It handles any POST request.
