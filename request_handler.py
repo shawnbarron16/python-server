@@ -1,5 +1,7 @@
-from animals.request import get_all_animals, get_single_animal
+import animals
+from animals.request import get_all_animals, get_single_animal, create_animal, delete_animal, update_animal
 from http.server import BaseHTTPRequestHandler, HTTPServer
+import json
 
 
 # Here's a class. It inherits from another class.
@@ -81,8 +83,16 @@ class HandleRequests(BaseHTTPRequestHandler):
 
         content_len = int(self.headers.get('content-length', 0))
         post_body = self.rfile.read(content_len)
-        response = f"received post request:<br>{post_body}"
-        self.wfile.write(response.encode())
+        post_body = json.loads(post_body)
+
+        (resource, id) = self.parse_url(self.path)
+
+        new_animal = None
+
+        if resource == "animals":
+            new_animal = create_animal(post_body)
+
+        self.wfile.write(f"{new_animal}".encode())
 
     # Here's a method on the class that overrides the parent's method.
     # It handles any PUT request.
@@ -90,7 +100,28 @@ class HandleRequests(BaseHTTPRequestHandler):
     def do_PUT(self):
         """Handles PUT requests to the server
         """
-        self.do_POST()
+        self._set_headers(204)
+        content_len = int(self.headers.get('content-length', 0))
+        post_body = self.rfile.read(content_len)
+        post_body = json.loads(post_body)
+
+        (resource, id) = self.parse_url(self.path)
+
+        if resource == "animals":
+            update_animal(id, post_body)
+
+        self.wfile.write("".encode())
+
+    def do_DELETE(self):
+        """Handles DELETE request to the server
+        """
+        self._set_headers(204)
+        (resource, id) = self.parse_url(self.path)
+
+        if resource == "animals":
+            delete_animal(id)
+
+        self.wfile.write("".encode())
 
 
 # This function is not inside the class. It is the starting
