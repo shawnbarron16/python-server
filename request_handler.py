@@ -1,5 +1,8 @@
-import animals
+import animals, locations, customers, employees
 from animals.request import get_all_animals, get_single_animal, create_animal, delete_animal, update_animal
+from locations.request import get_all_locations, get_single_location, create_location
+from customers.request import get_all_customers, get_single_customer, create_customer
+from employees.request import get_all_employees, get_single_employee, create_employee
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 
@@ -15,18 +18,29 @@ class HandleRequests(BaseHTTPRequestHandler):
     """
 
     def parse_url(self, path):
-        path_params = path.split('/')
+        path_params = path.split("/")
         resource = path_params[1]
-        id = None
 
-        try: 
-            id = int(path_params[2])
-        except IndexError:
-            pass
-        except ValueError:
-            pass
+        if "?" in resource:
+            query = resource.split('?')
+            param = query[1] 
+            resource = query[0]
+            pair = param.split('=')
+            key = pair[0]
+            value = pair[1]
 
-        return (resource, id)
+            return(resource, key, value)
+
+        else:
+            id = None
+            try:
+                id = int(path_params[2])
+            except IndexError:
+                pass
+            except ValueError:
+                pass
+
+            return(resource, id)
 
     # Here's a class function
     def _set_headers(self, status):
@@ -62,6 +76,11 @@ class HandleRequests(BaseHTTPRequestHandler):
         self._set_headers(200)
         response = {}
 
+        parsed = self.parse_url(self.path)
+
+        if len(parsed) == 2:
+            (resource, id) = parsed
+
         (resource, id) = self.parse_url(self.path)
 
         if resource == "animals":
@@ -70,6 +89,28 @@ class HandleRequests(BaseHTTPRequestHandler):
 
             else:
                 response = f"{get_all_animals()}"
+
+        elif resource == "locations": 
+            if id is not None:
+                response = f"{get_single_location(id)}"
+
+            else:
+                response = f"{get_all_locations()}"
+
+        elif resource == "customers":
+            if id is not None:
+                response = f"{get_single_customer(id)}"
+            
+            else:
+                response = f"{get_all_customers()}"
+
+        elif resource == "employees":
+            if id is not None:
+                response = f"{get_single_employee(id)}"
+
+            else:
+                response = f"{get_all_employees()}"
+
 
         self.wfile.write(response.encode())
 

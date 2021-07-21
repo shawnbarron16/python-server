@@ -7,12 +7,12 @@ EMPLOYEES = [
     {
         "id": 2,
         "name": "Tom",
-                "locationId": 2
+        "locationId": 2
     },
     {
         "id": 3,
         "name": "Steve",
-                "locationId": 3
+        "locationId": 3
     }
 ]
 
